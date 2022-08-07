@@ -6,7 +6,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/gofiber/fiber/v2/middleware/csrf"
 	"github.com/gofiber/fiber/v2/middleware/encryptcookie"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/template/html"
@@ -14,6 +13,7 @@ import (
 
 func FiberApp() *fiber.App {
 	engine := html.New("./internal/http/views", ".html")
+	cookieKey := os.Getenv("DECRYPT_COOKIE_KEY")
 
 	app := fiber.New(fiber.Config{
 		AppName:           "sso server",
@@ -26,11 +26,12 @@ func FiberApp() *fiber.App {
 	app.Use(limiter.New(limiter.Config{
 		Max: 50,
 	}))
+
 	app.Use(encryptcookie.New(encryptcookie.Config{
-		Key: os.Getenv("DECRYPT_COOKIE_KEY"),
+		Key: cookieKey,
 	}))
+
 	app.Use(compress.New())
-	app.Use(csrf.New())
 	app.Use(cors.New())
 
 	api := app.Group("/api")

@@ -7,6 +7,7 @@ import (
 	"go-sso/internal/storage/neo4j"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/csrf"
 )
 
 var (
@@ -30,6 +31,7 @@ func clientAppRoutes(router fiber.Router) {
 }
 
 func userRoutes(router fiber.Router) {
+	router.Use(csrf.New())
 	router.Use(httpHandler.protect)
 	router.Get("/currentUser", httpHandler.currentUser)
 	// find a way to get companies that the user is working in already
