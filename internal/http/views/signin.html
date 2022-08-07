@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="icon" href="/static/img/ventis_icon_gradient_rgb.webp">
+    <script defer src="/static/js/index.js"></script>
+</head>
+<body>
+    <div class="grid-container">
+        <div class="left-side">
+            <div class="image-section">
+                <h1 class="heading">Ventis-inc <br> Succeed Together </h1>
+                <p class="paragraph">Bridging Business & Technology</p>
+            </div>
+        </div>
+        <div class="right-side">
+            <div class="signup-box">
+                <img src="/static/img/ventis_icon_gradient_rgb.webp" alt="ventis-logo" class="ventis-logo">
+                <h1 class="signup-heading">Authorize your account with <br> {{.AppName}}</h1>
+                <div class="lines-containers">
+                    <div class="lines"></div>
+                </div>
+                <h3 class="signup-subheading">Sign In with Email</h3>
+                <form>
+                    <label >Email</label>
+                    <input type="email" name="email" id="email" placeholder="you@example.com">
+                    <label>Password</label>
+                    <input type="password" name="password" id="password" placeholder="password">
+                    <button type="submit" name="button" class="authorize-button">Authorize</button>
+                </form>
+                <p class="forgot-password"><a href="#">Forgot Password</a></p>
+                <hr class="horizontal-line">
+                <input type="button" value="Create New Account" class="new-account">
+            </div>
+        </div>
+
+    </div>
+    
+</body>
+</html>
