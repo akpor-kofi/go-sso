@@ -1,9 +1,10 @@
 package user_srv
 
 import (
-	"github.com/gofiber/fiber/v2/utils"
 	"go-sso/internal/core/domain"
 	"go-sso/internal/core/ports"
+
+	"github.com/gofiber/fiber/v2/utils"
 )
 
 type service struct {
@@ -45,4 +46,8 @@ func (s *service) Update(id string, user *domain.User) (*domain.User, error) {
 
 func (s *service) Delete(id string) error {
 	return s.userRepository.Delete(id)
+}
+
+func (s *service) UpdateResetToken(email string, resetToken string) error {
+	return s.userRepository.UpdateResetToken(email, resetToken)
 }

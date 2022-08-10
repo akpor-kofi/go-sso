@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"go-sso/internal/email"
 	"go-sso/internal/http/rest"
 	"go-sso/internal/storage/fiber_store"
 	"go-sso/internal/storage/neo4j"
@@ -26,6 +27,12 @@ func main() {
 
 	defer neo4j.Driver.Close()
 	defer neo4j.Session.Close()
+
+	from := os.Getenv("VENTIS_EMAIL")
+	password := os.Getenv("VENTIS_PASSWORD")
+	smtpHost := "smtp.gmail.com"
+	smtpPort := 465
+	email.ConnectToEmailService(smtpHost, smtpPort, from, password)
 
 	app := rest.FiberApp()
 

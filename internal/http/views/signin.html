@@ -1,44 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{{.Title}}</title>
-    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/global.css" />
     <link rel="icon" href="/static/img/ventis_icon_gradient_rgb.webp">
-    <script defer src="/static/js/index.js"></script>
-</head>
-<body>
+    <script defer src="/static/js/signin.js"></script>
+  </head>
+  <body>
     <div class="grid-container">
-        <div class="left-side">
-            <div class="image-section">
-                <h1 class="heading">Ventis-inc <br> Succeed Together </h1>
-                <p class="paragraph">Bridging Business & Technology</p>
-            </div>
+      <div class="left-side">
+        <div class="image-div">
+          <img
+            src="/static/img/ventis_logo.png"
+            alt="Ventis Logo"
+            class="logo-image"
+          />
         </div>
-        <div class="right-side">
-            <div class="signup-box">
-                <img src="/static/img/ventis_icon_gradient_rgb.webp" alt="ventis-logo" class="ventis-logo">
-                <h1 class="signup-heading">Authorize your account with <br> {{.AppName}}</h1>
-                <div class="lines-containers">
-                    <div class="lines"></div>
-                </div>
-                <h3 class="signup-subheading">Sign In with Email</h3>
-                <form>
-                    <label >Email</label>
-                    <input type="email" name="email" id="email" placeholder="you@example.com">
-                    <label>Password</label>
-                    <input type="password" name="password" id="password" placeholder="password">
-                    <button type="submit" name="button" class="authorize-button">Authorize</button>
-                </form>
-                <p class="forgot-password"><a href="#">Forgot Password</a></p>
-                <hr class="horizontal-line">
-                <input type="button" value="Create New Account" class="new-account">
-            </div>
+      </div>
+      <div class="right-side">
+        <div class="text-div">
+          <h2 class="Welcome-title">authorize your account with <p color="black">{{.AppName}}</p></h2>
         </div>
-
+        <div class="signup-box">
+          <form>
+            <label for="email">Email</label>
+            <input type="email" name="email" id="email"/>
+            <label for="email">Password</label>
+            <input type="password" name="password" id="password" class="Password" />
+            <p class="link-paragraph">
+              <a href="/forgot-password" class="link">Forgotten Password?</a>
+            </p>
+            <div class="error-message"></div>
+            <p class="button-paragraph">
+              <button type="submit" class="submit-button">Authorize</button>
+            </p>
+          </form>
+          <!-- <hr class="horizontal-line" /> -->
+          <!-- <input type="button" value="Create New Account" class="new-account" /> -->
+          <p class="signup-paragraph">
+            Don't have an account? <a href="/signup" class="signup-link">Sign Up</a>
+          </p>
+        </div>
+      </div>
     </div>
-    
-</body>
+  </body>
 </html>

@@ -31,9 +31,11 @@ func clientAppRoutes(router fiber.Router) {
 }
 
 func userRoutes(router fiber.Router) {
+	router.Post("/forgotPassword", httpHandler.forgotPassword)
+	router.Patch("/resetPassword/:token", httpHandler.resetPassword)
 	router.Use(csrf.New())
 	router.Use(httpHandler.protect)
-	router.Get("/currentUser", httpHandler.currentUser)
+	router.Get("/current-user", httpHandler.currentUser)
 	// find a way to get companies that the user is working in already
 	router.Get("/", httpHandler.getAllUsers)
 	router.Post("/", httpHandler.addUser)
@@ -50,13 +52,13 @@ func companyRoutes(router fiber.Router) {
 	router.Patch("/:id", nothing)
 	router.Delete("/:id", httpHandler.deleteCompany)
 
-	router.Post("/:id/addEmployee/:userId", httpHandler.addEmployee)
+	router.Post("/:id/add-employee/:userId", httpHandler.addEmployee)
 	// add a add location route
 }
 
 func oauthRoutes(router fiber.Router) {
 	oauth := router.Group("/authorize", httpHandler.authorize)
-	oauth.Get("/signin", httpHandler.signinView)
+	oauth.Get("/signin", httpHandler.isLoggedIn, httpHandler.signinView)
 	oauth.Get("/handshake", httpHandler.generateCodeForClient)
 	router.Get("/userinfo", httpHandler.getUserData)
 }
@@ -65,4 +67,10 @@ func authRoutes(router fiber.Router) {
 	router.Post("/signup", httpHandler.signup)
 	router.Post("/login", httpHandler.login)
 	router.Get("/logout", httpHandler.logout)
+}
+
+func viewRoutes(router fiber.Router) {
+	router.Get("/signup", httpHandler.signupForm)
+	router.Get("/login", httpHandler.loginForm)
+	router.Get("/forgot-password", httpHandler.forgotPasswordForm)
 }

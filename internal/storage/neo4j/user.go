@@ -2,6 +2,7 @@ package neo4j
 
 import (
 	"go-sso/internal/core/domain"
+	"time"
 
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
 )
@@ -123,11 +124,12 @@ func (u UserStorage) New(user *domain.User) (*domain.User, error) {
 
 	_, err := Session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
 		cypher := `
-			CREATE (u:User {id: $Id, name: $Name, email: $Email, image: $Image, dob: $Dob, password: $Password, employeeId: $EmployeeId, phoneNumber: $PhoneNumber, createdAt: $CreatedAt, updatedAt: $UpdatedAt, version: $Version})
+			CREATE (u:User {id: $Id, name: $Name, email: $Email, image: $Image, dob: $Dob, password: $Password, employeeId: $EmployeeId, phoneNumber: $PhoneNumber, createdAt: $CreatedAt, updatedAt: $UpdatedAt, version: $Version, resetToken: $ResetToken, resetExpiresAt: $ResetExpiresAt})
 `
 
-		result, err := tx.Run(cypher, properties)
+		// uniqueConstraints := `CREATE CONSTRAINT user_email_unique IF NOT EXISTS FOR (user:User) REQUIRE user.email IS UNIQUE`
 
+		result, err := tx.Run(cypher, properties)
 		if err != nil {
 			return nil, err
 		}
@@ -166,6 +168,34 @@ func (u UserStorage) Delete(id string) error {
 
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (u UserStorage) UpdateResetToken(email, resetToken string) error {
+	_, err := Session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
+		cypher := `
+			MATCH(u:User {email: $email})
+			SET u.resetToken = $resetToken
+			SET u.resetExpiresAt = $exp
+		`
+
+		result, err := tx.Run(cypher, map[string]interface{}{
+			"email":      email,
+			"resetToken": resetToken,
+			"exp":        time.Now().Add(10 * time.Minute).UnixMilli(),
+		})
+
+		if err != nil {
+			return nil, err
+		}
+
+		return result.Collect()
+	})
+
+	if err != nil {
+		panic(err)
 	}
 
 	return nil

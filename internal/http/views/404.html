@@ -1,28 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/static/css/404.css" />
     <title>{{.Title}}</title>
-    <link rel="stylesheet" href="/static/css/style.css">
-</head>
-<body class="error-body">
-    <div class="error-container">
-        <div>
-            <h1 class="oops">Oops!</h1>
-            <h2 class="error-subheading">PAGE NOT FOUND ON SERVER</h2>
-            <p class="error-paragraph">The link you followed is either outdated, inaccurate or the server have been instructed not to let you have it.</p>
-        </div>
-        <div>
-            <img src="/static/img/404-removebg-preview.png" alt="404-image" class="image">
-            <div class="input-div">
-        <div class="button">GO BACK</div>
-   
-        </div>
-        </div>
-
+  </head>
+  <body>
+    <div class="grid-container">
+      <div class="left-side">
+        <img
+          src="/static/img/undraw_page_not_found_re_e9o6 (1).svg"
+          alt="404 image"
+          class="error-image"
+        />
+      </div>
+      <div class="right-side">
+        <h1 class="heading">oops!</h1>
+        <h3 class="sub-heading">PAGE NOT FOUND ON SERVER</h3>
+        <p class="paragraph">
+          The link you followed is either outdated, inaccurate,<br />or the
+          server has been instructed not let you have it
+        </p>
+        <button type="submit" class="btn">Go to Home</button>
+      </div>
     </div>
-    
-</body>
+  </body>
 </html>

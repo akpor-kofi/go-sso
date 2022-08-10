@@ -34,6 +34,8 @@ func FiberApp() *fiber.App {
 	app.Use(compress.New())
 	app.Use(cors.New())
 
+	app.Route("/", viewRoutes)
+
 	api := app.Group("/api")
 	v1 := api.Group("/v1")
 
@@ -42,6 +44,10 @@ func FiberApp() *fiber.App {
 	v1.Route("/users", userRoutes)
 	v1.Route("/clientApp", clientAppRoutes)
 	v1.Route("/companies", companyRoutes)
+
+	app.All("*", func(ctx *fiber.Ctx) error {
+		return ctx.Status(404).Render("404", fiber.Map{})
+	})
 
 	return app
 }

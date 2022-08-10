@@ -11,6 +11,7 @@ type UserRepository interface {
 	New(user *domain.User) (*domain.User, error)
 	Update(id string, user *domain.User) (*domain.User, error)
 	Delete(id string) error
+	UpdateResetToken(email string, resetToken string) error
 }
 
 type CompanyRepository interface {
@@ -29,4 +30,8 @@ type ClientAppRepository interface {
 	Get(clientId string) (*domain.ClientApp, error)
 	Delete(clientId string) error
 	AuthorizeClientCredentials(requestToken, clientId string) (*domain.ClientApp, error)
+}
+
+type Mailer interface {
+	Send(body string) error
 }

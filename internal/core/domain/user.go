@@ -1,6 +1,8 @@
 package domain
 
 import (
+	"encoding/hex"
+	"math/rand"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -13,18 +15,20 @@ const (
 )
 
 type User struct {
-	Id          string `json:"id"`
-	Name        string `json:"name"`
-	Email       string `json:"email"`
-	Image       string `json:"image"`
-	Dob         string `json:"dob"`
-	Password    string `json:"password"`
-	EmployeeId  string `json:"employeeId"`
-	PhoneNumber string `json:"phoneNumber"`
-	CreatedAt   int64  `json:"createdAt"`
-	UpdatedAt   int64  `json:"updatedAt"`
-	Version     int    `json:"version"`
-	Active      bool   `json:"active"`
+	Id             string `json:"id"`
+	Name           string `json:"name"`
+	Email          string `json:"email"`
+	Image          string `json:"image"`
+	Dob            string `json:"dob"`
+	Password       string `json:"password"`
+	EmployeeId     string `json:"employeeId"`
+	PhoneNumber    string `json:"phoneNumber"`
+	CreatedAt      int64  `json:"createdAt"`
+	UpdatedAt      int64  `json:"updatedAt"`
+	ResetToken     string `json:"resetToken"`
+	ResetExpiresAt int64  `json:"resetExpiresAt"`
+	Version        int    `json:"version"`
+	Active         bool   `json:"active"`
 	// TODO: reset token property
 }
 
@@ -56,6 +60,11 @@ func (u *User) Pre(hook, writeType string) {
 			u.Version++
 		}
 
+		// setting reset token
+		resetTokenBytes := make([]byte, 32)
+		rand.Read(resetTokenBytes)
+
+		u.ResetToken = hex.EncodeToString(resetTokenBytes)
 	}
 }
 

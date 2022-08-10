@@ -75,8 +75,39 @@ func (c ClientAppStorage) GetAll(opts ...string) ([]*domain.ClientApp, error) {
 }
 
 func (c ClientAppStorage) Get(clientId string) (*domain.ClientApp, error) {
+	records, err := Session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
+		cypher := `
+				MATCH (a:ClientApplication)
+				WHERE a.id = $clientId
+				RETURN a
+   		`
 
-	return nil, nil
+		result, err := tx.Run(cypher, map[string]interface{}{"clientId": clientId})
+
+		if err != nil {
+			return nil, err
+		}
+
+		return result.Collect()
+	})
+
+	if err != nil {
+		panic(err)
+	}
+
+	var clientMap map[string]interface{}
+
+	for _, record := range records.([]*neo4j.Record) {
+		clientMap = record.Values[0].(neo4j.Node).Props
+	}
+
+	clientApp, err := deserializeClientApp(clientMap)
+
+	if err != nil {
+		return &domain.ClientApp{}, err
+	}
+
+	return clientApp, nil
 }
 
 func (c ClientAppStorage) Delete(clientId string) error {

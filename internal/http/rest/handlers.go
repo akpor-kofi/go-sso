@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"go-sso/internal/core/domain"
 	"go-sso/internal/core/ports"
+	"go-sso/internal/email"
 	"go-sso/internal/storage/fiber_store"
 	"log"
 	"math/rand"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -45,8 +47,9 @@ func createSignToken(user *domain.User, ctx *fiber.Ctx, statusCode int) error {
 	cookie.Expires = time.Now().Add(4 * time.Hour)
 
 	ctx.Cookie(cookie)
-	ctx.SendStatus(statusCode)
-	return ctx.JSON(user)
+
+	// later may send token
+	return ctx.Status(statusCode).JSON(user)
 }
 
 func nothing(ctx *fiber.Ctx) error {
@@ -137,12 +140,20 @@ func (http *HttpHandler) login(ctx *fiber.Ctx) error {
 	}
 
 	if user.Email == "" || user.Password == "" {
-		return fiber.NewError(400, "please provide email and password")
+		// return fiber.NewError(400, "please provide email and password")
+		return ctx.Status(400).JSON(fiber.Map{
+			"status":  "error",
+			"message": "please provide email and password",
+		})
 	}
 
 	existingUser, err := http.userService.GetByEmail(user.Email)
 	if err != nil || existingUser.CompareHashPassword(existingUser.Password, user.Password) != nil {
-		return fiber.NewError(400, "incorrect username or password")
+		// return fiber.NewError(400, "incorrect username or password")
+		return ctx.Status(400).JSON(fiber.Map{
+			"status":  "error",
+			"message": "incorrect username or password",
+		})
 	}
 
 	return createSignToken(existingUser, ctx, 200)
@@ -161,6 +172,43 @@ func (http *HttpHandler) protect(ctx *fiber.Ctx) error {
 
 	if !auth.Verify(sig, sessionId, &privateKey) {
 		return fiber.NewError(401, "you're not logged in")
+	}
+
+	userBytes, _ := fiber_store.Store.Storage.Get(token[0])
+
+	userId := string(userBytes)
+
+	if userId == "" {
+		fmt.Println("user session not declared")
+	}
+
+	user, err := http.userService.Get(userId)
+	if err != nil {
+		return err
+	}
+	user.Post("find")
+
+	// like setting req.user
+	c := ctx.UserContext()
+	c = context.WithValue(c, "currentUser", user)
+	ctx.SetUserContext(c)
+
+	return ctx.Next()
+}
+
+func (http *HttpHandler) isLoggedIn(ctx *fiber.Ctx) error {
+	authToken := ctx.Cookies("auth")
+	if authToken == "" {
+		return ctx.Next()
+	}
+
+	token := strings.Split(authToken, ":")
+	sessionId, _ := hex.DecodeString(token[0])
+	sig, _ := hex.DecodeString(token[1])
+	privateKey := getPrivateKeyBytes()
+
+	if !auth.Verify(sig, sessionId, &privateKey) {
+		return ctx.Next()
 	}
 
 	userBytes, _ := fiber_store.Store.Storage.Get(token[0])
@@ -329,11 +377,20 @@ func (http *HttpHandler) getApp(ctx *fiber.Ctx) error {
 
 func (http *HttpHandler) signinView(ctx *fiber.Ctx) error {
 	c := ctx.UserContext()
-
 	clientApp := c.Value("clientApp").(*domain.ClientApp)
-
 	redirectUri := ctx.Query("redirectUri")
-	// scope := ctx.Query("scope")
+
+	value := c.Value("currentUser")
+	if value != nil {
+		currentUser := value.(*domain.User)
+
+		return ctx.Render("authorize", fiber.Map{
+			"Title":       "Ventis | authorize",
+			"RedirectUri": redirectUri,
+			"AppName":     clientApp.AppName,
+			"Username":    currentUser.Name,
+		})
+	}
 
 	fmt.Println("got here by ventis")
 
@@ -352,6 +409,7 @@ func (http *HttpHandler) authorize(ctx *fiber.Ctx) error {
 
 	clientApp, err := http.clientAppService.AuthorizeClientCredentials(requestToken, clientId)
 	if err != nil {
+		fmt.Println(err)
 		return ctx.Render("404", fiber.Map{
 			"Title": "Ventis | Page Not Found",
 		})
@@ -419,8 +477,64 @@ func (http *HttpHandler) getUserData(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	// probably filter user details by scope
-	fmt.Println(t)
-
 	return ctx.SendString(t)
+}
+
+func (http *HttpHandler) forgotPassword(ctx *fiber.Ctx) error {
+	body := &struct {
+		Email string `json:"email"`
+	}{}
+
+	err := ctx.BodyParser(body)
+	if err != nil {
+		return err
+	}
+
+	//get email resetToken
+	resetTokenBytes := make([]byte, 32)
+	rand.Read(resetTokenBytes)
+	resetToken := hex.EncodeToString(resetTokenBytes)
+
+	err = http.userService.UpdateResetToken(body.Email, resetToken)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("reached here")
+
+	// arrange the sending of email
+	from := os.Getenv("VENTIS_EMAIL")
+	to := body.Email
+	e := email.NewEmail(from, to, "forgot password")
+
+	message := fmt.Sprintf("%s://%s/api/v1/users/resetPassword/%s", ctx.Protocol(), ctx.Hostname(), resetToken)
+
+	if err = e.Send(message, "text/plain"); err != nil {
+		return err
+	}
+
+	return ctx.SendStatus(200)
+}
+
+func (http *HttpHandler) resetPassword(ctx *fiber.Ctx) error {
+
+	return ctx.SendString("")
+}
+
+func (http *HttpHandler) signupForm(ctx *fiber.Ctx) error {
+	return ctx.Status(200).Render("signup", fiber.Map{
+		"Title": "Ventis | Signup",
+	})
+}
+
+func (http *HttpHandler) loginForm(ctx *fiber.Ctx) error {
+	return ctx.Status(200).Render("login", fiber.Map{
+		"Title": "Ventis | Signin",
+	})
+}
+
+func (http *HttpHandler) forgotPasswordForm(ctx *fiber.Ctx) error {
+	return ctx.Status(200).Render("forgotPassword", fiber.Map{
+		"Title": "Ventis | Forgot Password",
+	})
 }

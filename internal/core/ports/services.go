@@ -9,6 +9,7 @@ type UserService interface {
 	New(user *domain.User) (*domain.User, error)
 	Update(id string, user *domain.User) (*domain.User, error)
 	Delete(id string) error
+	UpdateResetToken(email string, resetToken string) error
 }
 
 type CompanyService interface {

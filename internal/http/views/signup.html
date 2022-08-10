@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/static/css/global.css" />
+    <script defer src="/static/js/signup.js"></script>
+    <title>{{.Title}}</title>
+  </head>
+  <body>
+    <div class="grid-container">
+      <div class="left-side">
+        <div class="image-div">
+          <img
+            src="/static/img/ventis_logo.png"
+            alt="Ventis Logo"
+            class="logo-image"
+          />
+        </div>
+      </div>
+      <div class="right-side">
+        <div>
+          <div class="text-div">
+            <h2 class="signup-title">
+              Sign up to Ventis
+            </h2>
+          </div>
+          <div class="signup-box">
+          <form class="signup-formm">
+            <label for="name" class="form-label">Name</label>
+            <input type="text" placeholder="enter name" name="name" id="name" class="form-input" />
+
+            <label for="email" class="form-label">Email</label>
+            <input type="email" name="email" id="email" placeholder="" class="form-input" />
+
+            <label for="phoneNumber" class="form-label">Phone number</label>
+            <input type="tel" name="phoneNumber" id="phoneNumber" class="form-input" />
+
+            <label for="dob" class="form-label">Date of Birth</label>
+            <input type="date" name="dob" id="dob" class="form-input" />
+
+            <label for="password" class="form-label">Password</label>
+            <input type="text" name="password" id="password" class="form-input"/>
+
+            <label for="confirmPassword" class="form-label">Confirm Password</label>
+            <input type="text" name="confirmPassword" class="form-input"/>
+
+            <label for="file-upload" class="custom-file-upload"> Upload File.</label>
+            <input id="file-upload" type="file"/>
+
+            <button type="submit" class="signup-btn">Sign Up</button>
+
+          </form>
+          <p class="login-paragraph">Already have an account? <a href="/login" class="login-link">Login</a></p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
