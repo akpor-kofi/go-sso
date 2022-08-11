@@ -7,12 +7,12 @@ import (
 	"strings"
 	"time"
 
-	_ "github.com/golang-jwt/jwt/v4"
+	"github.com/go-playground/validator"
 )
 
 type ClientApp struct {
 	Id           string `json:"Id"`
-	AppName      string `json:"appName"`
+	AppName      string `json:"appName" validate:"required" form:"appName"`
 	RequestToken string `json:"requestToken"`
 	Secret       string `json:"secret"`
 
@@ -27,7 +27,9 @@ func New(appName string) *ClientApp {
 	requestTokenBytes := make([]byte, 32)
 	secretBytes := make([]byte, 40)
 
+	rand.Seed(time.Now().UnixNano())
 	rand.Read(requestTokenBytes)
+	rand.Seed(time.Now().UnixNano())
 	rand.Read(secretBytes)
 
 	requestToken := hex.EncodeToString(requestTokenBytes)
@@ -39,4 +41,20 @@ func New(appName string) *ClientApp {
 		RequestToken: requestToken,
 		Secret:       secret,
 	}
+}
+
+func ClientAppValidation(app ClientApp) []*ErrorResponse {
+	var validate = validator.New()
+	var errors []*ErrorResponse
+	err := validate.Struct(app)
+	if err != nil {
+		for _, err := range err.(validator.ValidationErrors) {
+			var element ErrorResponse
+			element.FailedField = err.StructNamespace()
+			element.Tag = err.Tag()
+			element.Value = err.Param()
+			errors = append(errors, &element)
+		}
+	}
+	return errors
 }

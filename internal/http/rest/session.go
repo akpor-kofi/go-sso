@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"go-sso/internal/storage/fiber_store"
 	"math/rand"
+	"time"
 
 	"golang.org/x/crypto/nacl/auth"
 )
@@ -15,6 +16,7 @@ type Session struct {
 
 func newSession(userId string) *Session {
 	sessionId := make([]byte, 13)
+	rand.Seed(time.Now().UnixNano())
 	rand.Read(sessionId)
 	sessionIdString := hex.EncodeToString(sessionId)
 

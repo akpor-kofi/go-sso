@@ -1,6 +1,5 @@
 
 const loginForm = document.querySelector('form')
-const body = document.querySelector('body')
 const errorMessageElement = document.querySelector('.error-message')
 const submitButton = loginForm.querySelector('button')
 
@@ -16,15 +15,14 @@ loginForm.addEventListener('submit', async (e) => {
 
     // send request with axios
     try {
-        const res = await fetch("/api/v1/auth/login?", {
+        const res = await fetch("/api/v1/auth/login", {
             method: 'post',
             body: formData
         })
 
         if (!res.ok) {
             const error = await res.json()
-            errorMessageElement.innerText = '* ' + error.message
-            errorMessageElement.style.color = "red"
+            errorMessageElement.innerHTML = `<p class="error-paragraph">* ${error.message}</p>`
             submitButton.innerHTML = "Authorize"
             
             throw new Error(error)

@@ -1,6 +1,7 @@
 package neo4j
 
 import (
+	"fmt"
 	"go-sso/internal/core/domain"
 	"time"
 
@@ -44,7 +45,6 @@ func (u UserStorage) GetAll() ([]*domain.User, error) {
 	}
 
 	return result.([]*domain.User), nil
-
 }
 
 func (u UserStorage) Get(id string) (*domain.User, error) {
@@ -199,4 +199,41 @@ func (u UserStorage) UpdateResetToken(email, resetToken string) error {
 	}
 
 	return nil
+}
+
+func (u UserStorage) GetResetToken(token string) (*domain.User, error) {
+	records, err := Session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
+		cypher := `
+			MATCH(u:User {resetToken: $resetToken})
+			WHERE u.resetExpiresAt > $exp
+			RETURN u
+		`
+
+		result, err := tx.Run(cypher, map[string]interface{}{"resetToken": token, "exp": time.Now().UnixMilli()})
+
+		if err != nil {
+			return nil, err
+		}
+
+		return result.Collect()
+	})
+
+	if err != nil {
+		panic(err)
+	}
+
+	var userMap map[string]interface{}
+
+	for _, record := range records.([]*neo4j.Record) {
+		userMap = record.Values[0].(neo4j.Node).Props
+	}
+
+	user, err := deserializeUser(userMap)
+
+	if err != nil {
+		fmt.Println(err)
+		return &domain.User{}, err
+	}
+
+	return user, nil
 }

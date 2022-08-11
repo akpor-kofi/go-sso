@@ -2,18 +2,20 @@ package main
 
 import (
 	"fmt"
-	"go-sso/internal/email"
 	"go-sso/internal/http/rest"
+	email "go-sso/internal/mailing"
 	"go-sso/internal/storage/fiber_store"
 	"go-sso/internal/storage/neo4j"
 	"log"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/joho/godotenv"
 )
 
 func main() {
+	fmt.Println(time.Now().UnixMilli())
 	err := godotenv.Load("./cmd/sso-server/.env")
 	if err != nil {
 		log.Fatal(err)
@@ -38,8 +40,5 @@ func main() {
 
 	fmt.Println("starting server: ")
 
-	err = app.Listen(":3000")
-	if err != nil {
-		panic(err)
-	}
+	log.Fatal(app.Listen(":3000"))
 }

@@ -1,6 +1,8 @@
 package email
 
 import (
+	"os"
+
 	"gopkg.in/gomail.v2"
 )
 
@@ -10,7 +12,8 @@ type Email struct {
 	Subject string
 }
 
-func NewEmail(from, to, subject string) *Email {
+func New(to, subject string) *Email {
+	from := os.Getenv("VENTIS_EMAIL")
 	return &Email{
 		from, to, subject,
 	}

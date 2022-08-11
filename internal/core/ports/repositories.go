@@ -1,6 +1,9 @@
 package ports
 
-import "go-sso/internal/core/domain"
+import (
+	"go-sso/internal/core/domain"
+	"mime/multipart"
+)
 
 // also add a filter query in the getAll
 
@@ -12,6 +15,7 @@ type UserRepository interface {
 	Update(id string, user *domain.User) (*domain.User, error)
 	Delete(id string) error
 	UpdateResetToken(email string, resetToken string) error
+	GetResetToken(token string) (*domain.User, error)
 }
 
 type CompanyRepository interface {
@@ -34,4 +38,8 @@ type ClientAppRepository interface {
 
 type Mailer interface {
 	Send(body string) error
+}
+
+type ContentStorage interface {
+	Upload(file multipart.File, userId string) (string, error)
 }

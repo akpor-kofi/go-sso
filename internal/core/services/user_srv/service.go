@@ -51,3 +51,7 @@ func (s *service) Delete(id string) error {
 func (s *service) UpdateResetToken(email string, resetToken string) error {
 	return s.userRepository.UpdateResetToken(email, resetToken)
 }
+
+func (s *service) GetResetToken(token string) (*domain.User, error) {
+	return s.userRepository.GetResetToken(token)
+}

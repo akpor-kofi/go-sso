@@ -255,7 +255,7 @@ form input:hover {
 
 .link-paragraph {
   padding-top: 10px;
-  margin-bottom: 85px;
+  margin-bottom: 40px;
 }
 
 .link {
@@ -334,10 +334,6 @@ form input:hover {
   font-weight: bold;
   /* margin-bottom: 50px; */
   padding-bottom: 25px;
-}
-
-.signup-link {
-  /* color: #b7c4dd; */
 }
 
 .signup-link:hover {
@@ -464,4 +460,13 @@ form input:hover {
 .submit-link {
   color: #fff;
   text-decoration: none;
+}
+
+.error-message {
+  margin-bottom:40px;
+}
+
+.error-paragraph {
+  margin-top: -80px;
+  color: red;
 }

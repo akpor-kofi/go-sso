@@ -5,6 +5,7 @@ import (
 	"go-sso/internal/core/services/company_srv"
 	"go-sso/internal/core/services/user_srv"
 	"go-sso/internal/storage/neo4j"
+	"go-sso/internal/storage/s3_bucket"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/csrf"
@@ -19,7 +20,9 @@ var (
 	companyService   = company_srv.New(companyRepository)
 	clientAppService = client_app_srv.New(clientAppRepository)
 
-	httpHandler = NewHttpHandler(userService, companyService, clientAppService)
+	contentStorage = s3_bucket.NewBucket()
+
+	httpHandler = NewHttpHandler(userService, companyService, clientAppService, contentStorage)
 )
 
 func clientAppRoutes(router fiber.Router) {
@@ -31,14 +34,14 @@ func clientAppRoutes(router fiber.Router) {
 }
 
 func userRoutes(router fiber.Router) {
-	router.Post("/forgotPassword", httpHandler.forgotPassword)
-	router.Patch("/resetPassword/:token", httpHandler.resetPassword)
+	router.Post("/forgot-password", httpHandler.forgotPassword)
+	router.Patch("/reset-password/:token", httpHandler.resetPassword)
 	router.Use(csrf.New())
 	router.Use(httpHandler.protect)
 	router.Get("/current-user", httpHandler.currentUser)
 	// find a way to get companies that the user is working in already
 	router.Get("/", httpHandler.getAllUsers)
-	router.Post("/", httpHandler.addUser)
+	router.Post("/", httpHandler.validateUserBody, httpHandler.addUser)
 	router.Get("/:id", httpHandler.getUserById)
 	router.Patch("/:id", nothing)
 	router.Delete("/:id", httpHandler.deleteUser)
@@ -64,7 +67,7 @@ func oauthRoutes(router fiber.Router) {
 }
 
 func authRoutes(router fiber.Router) {
-	router.Post("/signup", httpHandler.signup)
+	router.Post("/signup", httpHandler.validateUserBody, httpHandler.signup)
 	router.Post("/login", httpHandler.login)
 	router.Get("/logout", httpHandler.logout)
 }
@@ -73,4 +76,6 @@ func viewRoutes(router fiber.Router) {
 	router.Get("/signup", httpHandler.signupForm)
 	router.Get("/login", httpHandler.loginForm)
 	router.Get("/forgot-password", httpHandler.forgotPasswordForm)
+	router.Get("/reset-password", httpHandler.resetPasswordForm)
+	router.Get("/verify-signup", httpHandler.verifySignup)
 }

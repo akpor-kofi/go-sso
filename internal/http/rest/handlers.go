@@ -3,14 +3,14 @@ package rest
 import (
 	"context"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"go-sso/internal/core/domain"
 	"go-sso/internal/core/ports"
-	"go-sso/internal/email"
+	email "go-sso/internal/mailing"
 	"go-sso/internal/storage/fiber_store"
 	"log"
 	"math/rand"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -27,10 +27,11 @@ type HttpHandler struct {
 	userService      ports.UserService
 	companyService   ports.CompanyService
 	clientAppService ports.ClientAppService
+	contentStorage   ports.ContentStorage
 }
 
-func NewHttpHandler(userService ports.UserService, companyService ports.CompanyService, clientAppService ports.ClientAppService) *HttpHandler {
-	return &HttpHandler{userService, companyService, clientAppService}
+func NewHttpHandler(userService ports.UserService, companyService ports.CompanyService, clientAppService ports.ClientAppService, contentStorage ports.ContentStorage) *HttpHandler {
+	return &HttpHandler{userService, companyService, clientAppService, contentStorage}
 }
 
 func createSignToken(user *domain.User, ctx *fiber.Ctx, statusCode int) error {
@@ -111,6 +112,11 @@ func (http *HttpHandler) deleteUser(ctx *fiber.Ctx) error {
 
 func (http *HttpHandler) signup(ctx *fiber.Ctx) error {
 	newUser := new(domain.User)
+	fh, err := ctx.FormFile("imageFile")
+
+	if err != nil {
+		return err
+	}
 
 	if err := ctx.BodyParser(newUser); err != nil {
 		return err
@@ -118,15 +124,49 @@ func (http *HttpHandler) signup(ctx *fiber.Ctx) error {
 
 	newUser.Id = utils.UUIDv4()
 
-	user, err := http.userService.New(newUser)
+	_, err = http.userService.GetByEmail(newUser.Email)
 
-	// implement a email service
-
-	if err != nil {
-		panic(err)
+	if err == nil {
+		return ctx.Status(409).JSON(fiber.Map{
+			"status":  "fail",
+			"field":   "email",
+			"message": "this email is already in use",
+		})
 	}
 
-	return createSignToken(user, ctx, 201)
+	// open multipart file
+	file, err := fh.Open()
+	if err != nil {
+		return err
+	}
+
+	//upload file i.e image
+	imageUrl, err := contentStorage.Upload(file, newUser.Id)
+
+	if err != nil {
+		return err
+	}
+	newUser.Image = imageUrl
+
+	// send a verification email
+	// keep the user details in redis with an expiry of 15 minutes
+	b, err := json.Marshal(newUser)
+	if err != nil {
+		return err
+	}
+	fiber_store.Store.Storage.Set("user:signingup:"+newUser.Id, b, 5*time.Minute)
+
+	e := email.New(newUser.Email, "verify signup")
+	body := fmt.Sprintf("please click on the link: %s://%s/verify-signup?id=%s to verify your account. You have 15 minutes", ctx.Protocol(), ctx.Hostname(), newUser.Id)
+	err = e.Send(body, "text/plain")
+
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(fiber.Map{
+		"status": "success",
+	})
 }
 
 func (http *HttpHandler) login(ctx *fiber.Ctx) error {
@@ -430,6 +470,7 @@ func (http *HttpHandler) generateCodeForClient(ctx *fiber.Ctx) error {
 	// clientApp := c.Value("clientApp").(*domain.ClientApp)
 
 	applicationCodeBytes := make([]byte, 32)
+	rand.Seed(time.Now().UnixNano())
 	rand.Read(applicationCodeBytes)
 
 	applicationCode := hex.EncodeToString(applicationCodeBytes)
@@ -482,7 +523,7 @@ func (http *HttpHandler) getUserData(ctx *fiber.Ctx) error {
 
 func (http *HttpHandler) forgotPassword(ctx *fiber.Ctx) error {
 	body := &struct {
-		Email string `json:"email"`
+		Email string `json:"email" form:"email"`
 	}{}
 
 	err := ctx.BodyParser(body)
@@ -490,34 +531,41 @@ func (http *HttpHandler) forgotPassword(ctx *fiber.Ctx) error {
 		return err
 	}
 
+	_, err = http.userService.GetByEmail(body.Email)
+	if err != nil {
+		return ctx.Status(400).JSON(fiber.Map{
+			"status":  "fail",
+			"message": "invalid email",
+		})
+	}
+
 	//get email resetToken
 	resetTokenBytes := make([]byte, 32)
+	rand.Seed(time.Now().UnixNano())
 	rand.Read(resetTokenBytes)
 	resetToken := hex.EncodeToString(resetTokenBytes)
+
+	fmt.Println(resetToken)
 
 	err = http.userService.UpdateResetToken(body.Email, resetToken)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("reached here")
-
 	// arrange the sending of email
-	from := os.Getenv("VENTIS_EMAIL")
 	to := body.Email
-	e := email.NewEmail(from, to, "forgot password")
+	e := email.New(to, "forgot password")
 
-	message := fmt.Sprintf("%s://%s/api/v1/users/resetPassword/%s", ctx.Protocol(), ctx.Hostname(), resetToken)
+	message := fmt.Sprintf("%s://%s/reset-password?token=%s", ctx.Protocol(), ctx.Hostname(), resetToken)
 
 	if err = e.Send(message, "text/plain"); err != nil {
 		return err
 	}
 
-	return ctx.SendStatus(200)
+	return ctx.Status(200).JSON(fiber.Map{"status": "success"})
 }
 
 func (http *HttpHandler) resetPassword(ctx *fiber.Ctx) error {
-
 	return ctx.SendString("")
 }
 
@@ -537,4 +585,67 @@ func (http *HttpHandler) forgotPasswordForm(ctx *fiber.Ctx) error {
 	return ctx.Status(200).Render("forgotPassword", fiber.Map{
 		"Title": "Ventis | Forgot Password",
 	})
+}
+
+func (http *HttpHandler) resetPasswordForm(ctx *fiber.Ctx) error {
+	token := ctx.Params("token")
+
+	user, err := http.userService.GetResetToken(token)
+
+	if err != nil {
+		fmt.Println(err)
+		return ctx.Render("404", fiber.Map{
+			"Title": "Ventis | Page Not Found",
+		})
+	}
+
+	fmt.Println(*user)
+
+	return ctx.Status(200).Render("resetPassword", fiber.Map{
+		"Title": "Ventis | Reset Password",
+	})
+}
+
+func (http *HttpHandler) verifySignup(ctx *fiber.Ctx) error {
+	id := ctx.Query("id")
+
+	key := "user:signingup:" + id
+
+	user := new(domain.User)
+
+	b, err := fiber_store.Store.Storage.Get(key)
+
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(b, user)
+
+	if err != nil {
+		return ctx.SendString("invalid or expired link")
+	}
+
+	_, err = http.userService.New(user)
+
+	if err != nil {
+		return err
+	}
+
+	createSignToken(user, ctx, 201)
+	return ctx.Render("verifySignup", fiber.Map{"Title": "Sign up verified"})
+}
+
+func (http *HttpHandler) validateUserBody(ctx *fiber.Ctx) error {
+	user := new(domain.User)
+
+	if err := ctx.BodyParser(user); err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+
+	errors := domain.UserValidation(*user)
+	if errors != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "error", "message": errors})
+	}
+
+	return ctx.Next()
 }

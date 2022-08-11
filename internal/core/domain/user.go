@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/go-playground/validator"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -14,15 +15,21 @@ const (
 	update
 )
 
+type ErrorResponse struct {
+	FailedField string
+	Tag         string
+	Value       string
+}
+
 type User struct {
 	Id             string `json:"id"`
-	Name           string `json:"name"`
-	Email          string `json:"email"`
+	Name           string `json:"name" form:"name" validate:"required"`
+	Email          string `json:"email" form:"email" validate:"required,email"`
 	Image          string `json:"image"`
-	Dob            string `json:"dob"`
-	Password       string `json:"password"`
+	Dob            string `json:"dob" form:"dob" validate:"required"`
+	Password       string `json:"password" form:"password" validate:"required,min=8"`
 	EmployeeId     string `json:"employeeId"`
-	PhoneNumber    string `json:"phoneNumber"`
+	PhoneNumber    string `json:"phoneNumber" phoneNumber:"phoneNumber"`
 	CreatedAt      int64  `json:"createdAt"`
 	UpdatedAt      int64  `json:"updatedAt"`
 	ResetToken     string `json:"resetToken"`
@@ -62,6 +69,7 @@ func (u *User) Pre(hook, writeType string) {
 
 		// setting reset token
 		resetTokenBytes := make([]byte, 32)
+		rand.Seed(time.Now().UnixNano())
 		rand.Read(resetTokenBytes)
 
 		u.ResetToken = hex.EncodeToString(resetTokenBytes)
@@ -83,4 +91,20 @@ func (u *User) CompareHashPassword(hashedPassword, password string) error {
 	}
 
 	return nil
+}
+
+func UserValidation(user User) []*ErrorResponse {
+	var validate = validator.New()
+	var errors []*ErrorResponse
+	err := validate.Struct(user)
+	if err != nil {
+		for _, err := range err.(validator.ValidationErrors) {
+			var element ErrorResponse
+			element.FailedField = err.StructNamespace()
+			element.Tag = err.Tag()
+			element.Value = err.Param()
+			errors = append(errors, &element)
+		}
+	}
+	return errors
 }
