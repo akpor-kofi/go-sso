@@ -13,7 +13,6 @@ func deserializeUsers(usersMap []map[string]interface{}) []*domain.User {
 
 	err := mapstructure.Decode(usersMap, users)
 	if err != nil {
-		fmt.Println(err)
 		return nil
 	}
 
@@ -25,7 +24,6 @@ func deserializeCompanies(companiesMap []map[string]interface{}) []*domain.Compa
 
 	err := mapstructure.Decode(companiesMap, companies)
 	if err != nil {
-		fmt.Println(err)
 		return nil
 	}
 
@@ -37,7 +35,6 @@ func deserializeUser(userMap map[string]interface{}) (*domain.User, error) {
 
 	err := mapstructure.Decode(userMap, user)
 	if err != nil {
-		fmt.Println(err)
 		return &domain.User{}, err
 	}
 
@@ -53,7 +50,6 @@ func deserializeCompany(companyMap map[string]interface{}) (*domain.Company, err
 
 	err := mapstructure.Decode(companyMap, company)
 	if err != nil {
-		fmt.Println(err)
 		return &domain.Company{}, err
 	}
 
@@ -69,7 +65,6 @@ func deserializeClientApp(clientAppMap map[string]interface{}) (*domain.ClientAp
 
 	err := mapstructure.Decode(clientAppMap, clientApp)
 	if err != nil {
-		fmt.Println(err)
 		return &domain.ClientApp{}, err
 	}
 

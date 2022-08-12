@@ -1,7 +1,6 @@
 package client_app_srv
 
 import (
-	"fmt"
 	"go-sso/internal/core/domain"
 	"go-sso/internal/core/ports"
 )
@@ -16,7 +15,6 @@ func New(clientAppRepository ports.ClientAppRepository) *service {
 
 func (s *service) New(appName string, owner *domain.User) (*domain.ClientApp, error) {
 	clientApp := domain.New(appName)
-	fmt.Println(clientApp, "1")
 	return s.clientAppRepository.New(clientApp, owner)
 }
 

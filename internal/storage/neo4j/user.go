@@ -1,7 +1,6 @@
 package neo4j
 
 import (
-	"fmt"
 	"go-sso/internal/core/domain"
 	"time"
 
@@ -41,7 +40,7 @@ func (u UserStorage) GetAll() ([]*domain.User, error) {
 	})
 
 	if err != nil {
-		return nil, err
+		return []*domain.User{}, err
 	}
 
 	return result.([]*domain.User), nil
@@ -65,7 +64,7 @@ func (u UserStorage) Get(id string) (*domain.User, error) {
 	})
 
 	if err != nil {
-		panic(err)
+		return &domain.User{}, err
 	}
 
 	var userMap map[string]interface{}
@@ -101,7 +100,7 @@ func (u UserStorage) GetByEmail(email string) (*domain.User, error) {
 	})
 
 	if err != nil {
-		panic(err)
+		return &domain.User{}, err
 	}
 
 	var userMap map[string]interface{}
@@ -138,11 +137,10 @@ func (u UserStorage) New(user *domain.User) (*domain.User, error) {
 	})
 
 	if err != nil {
-		panic(err)
+		return &domain.User{}, err
 	}
 
 	return user, nil
-
 }
 
 func (u UserStorage) Update(id string, user *domain.User) (*domain.User, error) {
@@ -174,7 +172,7 @@ func (u UserStorage) Delete(id string) error {
 }
 
 func (u UserStorage) UpdateResetToken(email, resetToken string) error {
-	_, err := Session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
+	_, err := Session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
 		cypher := `
 			MATCH(u:User {email: $email})
 			SET u.resetToken = $resetToken
@@ -195,7 +193,7 @@ func (u UserStorage) UpdateResetToken(email, resetToken string) error {
 	})
 
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	return nil
@@ -219,7 +217,7 @@ func (u UserStorage) GetResetToken(token string) (*domain.User, error) {
 	})
 
 	if err != nil {
-		panic(err)
+		return &domain.User{}, err
 	}
 
 	var userMap map[string]interface{}
@@ -231,9 +229,34 @@ func (u UserStorage) GetResetToken(token string) (*domain.User, error) {
 	user, err := deserializeUser(userMap)
 
 	if err != nil {
-		fmt.Println(err)
 		return &domain.User{}, err
 	}
 
 	return user, nil
+}
+
+func (u UserStorage) UpdatePassword(id, password string) error {
+	_, err := Session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
+		cypher := `
+			MATCH(u:User {id: $id})
+			SET u.password = $password
+		`
+
+		result, err := tx.Run(cypher, map[string]interface{}{
+			"id":       id,
+			"password": password,
+		})
+
+		if err != nil {
+			return nil, err
+		}
+
+		return result.Collect()
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -55,3 +55,7 @@ func (s *service) UpdateResetToken(email string, resetToken string) error {
 func (s *service) GetResetToken(token string) (*domain.User, error) {
 	return s.userRepository.GetResetToken(token)
 }
+
+func (s *service) UpdatePassword(id, password string) error {
+	return s.userRepository.UpdatePassword(id, password)
+}

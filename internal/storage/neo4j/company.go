@@ -65,7 +65,7 @@ func (c CompanyStorage) Get(id string) (*domain.Company, error) {
 	})
 
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	var companyMap map[string]interface{}
@@ -121,7 +121,7 @@ func (c CompanyStorage) New(company *domain.Company, owner *domain.User) (*domai
 	})
 
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	return company, nil
@@ -170,7 +170,7 @@ func (c CompanyStorage) GetCompanyRole(companyId, userId string) string {
 	})
 
 	if err != nil {
-		panic(err)
+		return ""
 	}
 
 	var rel string

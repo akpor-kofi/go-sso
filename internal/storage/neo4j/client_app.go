@@ -1,7 +1,6 @@
 package neo4j
 
 import (
-	"fmt"
 	"go-sso/internal/core/domain"
 	"time"
 
@@ -23,9 +22,7 @@ func NewClientAppStorage() *ClientAppStorage {
 // }
 
 func (c ClientAppStorage) New(clientApp *domain.ClientApp, owner *domain.User) (*domain.ClientApp, error) {
-	fmt.Println(clientApp, "2")
 	properties := serializeDataToMap(clientApp)
-	fmt.Println(properties, "3")
 	records, err := Session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
 		createClientApplicationQuery := `
 			CREATE (a:ClientApplication { id: $Id, appName: $AppName, requestToken: $RequestToken, secret: $Secret } )
@@ -53,7 +50,7 @@ func (c ClientAppStorage) New(clientApp *domain.ClientApp, owner *domain.User) (
 	})
 
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	var appDetailsMap map[string]interface{}
@@ -92,7 +89,7 @@ func (c ClientAppStorage) Get(clientId string) (*domain.ClientApp, error) {
 	})
 
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	var clientMap map[string]interface{}
@@ -131,7 +128,7 @@ func (c ClientAppStorage) AuthorizeClientCredentials(requestToken, clientId stri
 	})
 
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	var clientMap map[string]interface{}

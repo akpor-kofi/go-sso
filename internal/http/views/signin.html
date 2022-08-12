@@ -5,6 +5,10 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{{.Title}}</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Raleway&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="/static/css/global.css" />
     <link rel="icon" href="/static/img/ventis_icon_gradient_rgb.webp">
     <script defer src="/static/js/signin.js"></script>
@@ -18,18 +22,25 @@
             alt="Ventis Logo"
             class="logo-image"
           />
+          <img
+            src="/static/img/ventis_hauptlogo_rgb.png"
+            alt="ventis-logo"
+            class="logo-image2"
+          />
         </div>
       </div>
       <div class="right-side">
         <div class="text-div">
           <h2 class="Welcome-title"> Authorize your account with <span style="color:black">{{.AppName}}</span></h2>
         </div>
-        <div class="signup-box">
+        <div class="login-box">
           <form>
             <label for="email">Email</label>
-            <input type="email" name="email" id="email"/>
+            <input type="email" name="email" id="email" class="form-input"/>
+
             <label for="email">Password</label>
-            <input type="password" name="password" id="password" class="Password" />
+            <input type="password" name="password" id="password" class="Password" class="form-input"/>
+
             <p class="link-paragraph">
               <a href="/forgot-password" class="link">Forgotten Password?</a>
             </p>

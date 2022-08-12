@@ -11,6 +11,7 @@ type UserService interface {
 	Delete(id string) error
 	UpdateResetToken(email string, resetToken string) error
 	GetResetToken(token string) (*domain.User, error)
+	UpdatePassword(id, password string) error
 }
 
 type CompanyService interface {

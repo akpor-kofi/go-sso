@@ -20,23 +20,11 @@ signupForm.addEventListener('submit', async (e) => {
         body: formData
     })
 
-    const data = await res.json()
-
     if (!res.ok) {
-        console.log(data.message)
-
-        const errors = data.message
-
-        errors.forEach(error => {
-            // error is {FailedField, Tag, Value}
-            
-        })
-
-
 
         buttonElement.innerText = "Sign Up"
         return
     }
 
-    console.log(data)
+    window.location = "/static/checkEmail.html"
 })

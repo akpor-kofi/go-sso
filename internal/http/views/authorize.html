@@ -1,12 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/static/css/global.css" />
     <title>{{.Title}}</title>
-</head>
-<body>
-    <p>Authorize {{.Username}}</p>
-</body>
+  </head>
+  <body class="authorise-body">
+    <div class="authorise-container">
+      <img
+        src="/static/img/undraw_two_factor_authentication_namy.svg"
+        alt="authorise photo"
+        class="authorise-photo"
+      />
+      <h1 class="grant-access">Grant Access</h1>
+      <p class="access-paragraph">
+        {{.Username}}, do you authorize {{.AppName}} <br />
+        your details
+      </p>
+      <div class="authorise-button-div">
+        <button class="authorise-button">Authorise</button>
+      </div>
+    </div>
+  </body>
 </html>

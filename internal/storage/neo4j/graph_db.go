@@ -1,7 +1,6 @@
 package neo4j
 
 import (
-	"fmt"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
 )
 
@@ -18,8 +17,6 @@ func ConnectToDb(uri string, username string, password string) {
 	if err != nil {
 		panic(err)
 	}
-
-	fmt.Println("connected to db")
 
 	Session = Driver.NewSession(neo4j.SessionConfig{DatabaseName: "neo4j"})
 }

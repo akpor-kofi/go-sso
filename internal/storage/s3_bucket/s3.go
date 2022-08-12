@@ -40,7 +40,5 @@ func (b *bucket) Upload(file multipart.File, userId string) (string, error) {
 		return "", err
 	}
 
-	fmt.Printf("file uploaded to, %s\n", result.Location)
-
 	return result.Location, nil
 }

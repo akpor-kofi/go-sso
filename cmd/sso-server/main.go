@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"go-sso/internal/http/rest"
 	email "go-sso/internal/mailing"
 	"go-sso/internal/storage/fiber_store"
@@ -9,13 +8,11 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"time"
 
 	"github.com/joho/godotenv"
 )
 
 func main() {
-	fmt.Println(time.Now().UnixMilli())
 	err := godotenv.Load("./cmd/sso-server/.env")
 	if err != nil {
 		log.Fatal(err)
@@ -37,8 +34,6 @@ func main() {
 	email.ConnectToEmailService(smtpHost, smtpPort, from, password)
 
 	app := rest.FiberApp()
-
-	fmt.Println("starting server: ")
 
 	log.Fatal(app.Listen(":3000"))
 }

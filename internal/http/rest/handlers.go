@@ -18,6 +18,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/utils"
 	"github.com/golang-jwt/jwt/v4"
+	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/crypto/nacl/auth"
 )
 
@@ -68,7 +69,7 @@ func (http *HttpHandler) addUser(ctx *fiber.Ctx) error {
 	user, err := http.userService.New(newUser)
 
 	if err != nil {
-		panic(err)
+		return (err)
 	}
 
 	return ctx.JSON(user)
@@ -219,7 +220,7 @@ func (http *HttpHandler) protect(ctx *fiber.Ctx) error {
 	userId := string(userBytes)
 
 	if userId == "" {
-		fmt.Println("user session not declared")
+		return fiber.NewError(401, "you're not logged in")
 	}
 
 	user, err := http.userService.Get(userId)
@@ -254,10 +255,6 @@ func (http *HttpHandler) isLoggedIn(ctx *fiber.Ctx) error {
 	userBytes, _ := fiber_store.Store.Storage.Get(token[0])
 
 	userId := string(userBytes)
-
-	if userId == "" {
-		fmt.Println("user session not declared")
-	}
 
 	user, err := http.userService.Get(userId)
 	if err != nil {
@@ -432,8 +429,6 @@ func (http *HttpHandler) signinView(ctx *fiber.Ctx) error {
 		})
 	}
 
-	fmt.Println("got here by ventis")
-
 	return ctx.Render("signin", fiber.Map{
 		"Title":       "Ventis | sign in",
 		"RedirectUri": redirectUri,
@@ -449,7 +444,6 @@ func (http *HttpHandler) authorize(ctx *fiber.Ctx) error {
 
 	clientApp, err := http.clientAppService.AuthorizeClientCredentials(requestToken, clientId)
 	if err != nil {
-		fmt.Println(err)
 		return ctx.Render("404", fiber.Map{
 			"Title": "Ventis | Page Not Found",
 		})
@@ -531,7 +525,7 @@ func (http *HttpHandler) forgotPassword(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	_, err = http.userService.GetByEmail(body.Email)
+	existingUser, err := http.userService.GetByEmail(body.Email)
 	if err != nil {
 		return ctx.Status(400).JSON(fiber.Map{
 			"status":  "fail",
@@ -545,12 +539,14 @@ func (http *HttpHandler) forgotPassword(ctx *fiber.Ctx) error {
 	rand.Read(resetTokenBytes)
 	resetToken := hex.EncodeToString(resetTokenBytes)
 
-	fmt.Println(resetToken)
-
+	// this algo not working for some dumb shit
 	err = http.userService.UpdateResetToken(body.Email, resetToken)
 	if err != nil {
 		return err
 	}
+
+	fiber_store.Store.Storage.Set(fmt.Sprintf("password:reset:%s", resetToken), []byte(existingUser.Id), 10*time.Minute)
+	// instead i'll be using redis
 
 	// arrange the sending of email
 	to := body.Email
@@ -566,7 +562,37 @@ func (http *HttpHandler) forgotPassword(ctx *fiber.Ctx) error {
 }
 
 func (http *HttpHandler) resetPassword(ctx *fiber.Ctx) error {
-	return ctx.SendString("")
+	token := ctx.Params("token")
+	key := fmt.Sprintf("password:reset:%s", token)
+
+	form := &struct {
+		Password        string `json:"password" form:"password"`
+		ConfirmPassword string `json:"confirmPassword" form:"confirmPassword"`
+	}{}
+
+	if err := ctx.BodyParser(form); err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(err.Error())
+	}
+
+	if form.Password != form.ConfirmPassword {
+		err := fmt.Errorf("password is not the same")
+		return ctx.Status(fiber.StatusConflict).JSON(err.Error())
+	}
+
+	b, err := fiber_store.Store.Storage.Get(key)
+
+	if err != nil || len(b) == 0 {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(err.Error())
+	}
+
+	hashedByte, _ := bcrypt.GenerateFromPassword([]byte(form.Password), 12)
+	password := string(hashedByte)
+
+	if err = http.userService.UpdatePassword(string(b), password); err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(err.Error())
+	}
+
+	return ctx.SendStatus(fiber.StatusOK)
 }
 
 func (http *HttpHandler) signupForm(ctx *fiber.Ctx) error {
@@ -588,18 +614,17 @@ func (http *HttpHandler) forgotPasswordForm(ctx *fiber.Ctx) error {
 }
 
 func (http *HttpHandler) resetPasswordForm(ctx *fiber.Ctx) error {
-	token := ctx.Params("token")
+	token := ctx.Query("token")
 
-	user, err := http.userService.GetResetToken(token)
+	key := fmt.Sprintf("password:reset:%s", token)
 
-	if err != nil {
-		fmt.Println(err)
+	b, err := fiber_store.Store.Storage.Get(key)
+
+	if err != nil || len(b) == 0 {
 		return ctx.Render("404", fiber.Map{
 			"Title": "Ventis | Page Not Found",
 		})
 	}
-
-	fmt.Println(*user)
 
 	return ctx.Status(200).Render("resetPassword", fiber.Map{
 		"Title": "Ventis | Reset Password",
