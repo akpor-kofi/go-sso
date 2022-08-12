@@ -7,20 +7,21 @@ import (
 	"go-sso/internal/storage/neo4j"
 	"log"
 	"os"
-	"strconv"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	// err := godotenv.Load("./cmd/sso-server/.env")
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
+	err := godotenv.Load("./cmd/sso-server/.env")
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	neo4j.ConnectToDb(os.Getenv("NEO4J_URI"), os.Getenv("NEO4J_USERNAME"), os.Getenv("NEO4J_PASSWORD"))
 
-	port, _ := strconv.ParseInt(os.Getenv("REDIS_PORT"), 10, 16)
+	// port, _ := strconv.ParseInt(os.Getenv("REDIS_PORT"), 10, 16)
 
-	fiber_store.ConnectRedisStore(os.Getenv("REDIS_HOST"), os.Getenv("REDIS_PASSWORD"), int(port))
+	fiber_store.ConnectRedisStore(os.Getenv("REDIS_URI"))
 
 	defer neo4j.Driver.Close()
 	defer neo4j.Session.Close()

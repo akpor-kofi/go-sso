@@ -11,12 +11,9 @@ var (
 	Store *session.Store
 )
 
-func ConnectRedisStore(host, password string, port int) {
+func ConnectRedisStore(uri string) {
 	storage := redis.New(redis.Config{
-		Host:     host,
-		Port:     port,
-		Username: "default",
-		Password: password,
+		URL: uri,
 	})
 
 	Store = session.New(session.Config{
