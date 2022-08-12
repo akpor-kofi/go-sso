@@ -7,15 +7,13 @@ import (
 	"go-sso/internal/storage/neo4j"
 	"log"
 	"os"
-
-	"github.com/joho/godotenv"
 )
 
 func main() {
-	err := godotenv.Load("./cmd/sso-server/.env")
-	if err != nil {
-		log.Fatal(err)
-	}
+	// err := godotenv.Load("./cmd/sso-server/.env")
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
 	neo4j.ConnectToDb(os.Getenv("NEO4J_URI"), os.Getenv("NEO4J_USERNAME"), os.Getenv("NEO4J_PASSWORD"))
 
