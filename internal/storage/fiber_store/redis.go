@@ -15,6 +15,7 @@ func ConnectRedisStore(host, password string, port int) {
 	storage := redis.New(redis.Config{
 		Host:     host,
 		Port:     port,
+		Username: "default",
 		Password: password,
 	})
 
