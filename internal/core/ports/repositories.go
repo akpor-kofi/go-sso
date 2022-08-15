@@ -2,7 +2,7 @@ package ports
 
 import (
 	"go-sso/internal/core/domain"
-	"mime/multipart"
+	"io"
 )
 
 // also add a filter query in the getAll
@@ -42,5 +42,5 @@ type Mailer interface {
 }
 
 type ContentStorage interface {
-	Upload(file multipart.File, userId string) (string, error)
+	Upload(file io.Reader, userId string) (string, error)
 }

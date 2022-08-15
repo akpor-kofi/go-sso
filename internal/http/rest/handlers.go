@@ -17,7 +17,6 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/utils"
-	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/crypto/nacl/auth"
 )
@@ -479,13 +478,13 @@ func (http *HttpHandler) generateCodeForClient(ctx *fiber.Ctx) error {
 
 func (http *HttpHandler) getUserData(ctx *fiber.Ctx) error {
 	appCode := ctx.Query("code")
-	clientId := ctx.Query("clientId")
+	// clientId := ctx.Query("clientId")
 
-	client, err := http.clientAppService.Get(clientId)
+	// client, err := http.clientAppService.Get(clientId)
 
-	if err != nil {
-		return err
-	}
+	// if err != nil {
+	// 	return err
+	// }
 
 	userIdBytes, err := fiber_store.Store.Storage.Get(appCode)
 
@@ -495,24 +494,28 @@ func (http *HttpHandler) getUserData(ctx *fiber.Ctx) error {
 
 	user, err := http.userService.Get(string(userIdBytes))
 
+	//removing jwt functionality now cause of java jwt seem not to work
+
 	// jwt sign this shit
-	claims := jwt.MapClaims{
-		"ventisId": user.Id,
-		"name":     user.Name,
-		"email":    user.Email,
-		"image":    user.Image,
-		"dob":      user.Dob,
-	}
+	// claims := jwt.MapClaims{
+	// 	"ventisId": user.Id,
+	// 	"name":     user.Name,
+	// 	"email":    user.Email,
+	// 	"image":    user.Image,
+	// 	"dob":      user.Dob,
+	// }
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	// token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	t, err := token.SignedString([]byte(client.Secret))
+	// t, err := token.SignedString([]byte(client.Secret))
 
-	if err != nil {
-		return err
-	}
+	// if err != nil {
+	// 	return err
+	// }
 
-	return ctx.SendString(t)
+	// return ctx.SendString(t)
+
+	return ctx.Status(fiber.StatusOK).JSON(*user)
 }
 
 func (http *HttpHandler) forgotPassword(ctx *fiber.Ctx) error {

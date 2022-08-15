@@ -2,7 +2,7 @@ package s3_bucket
 
 import (
 	"fmt"
-	"mime/multipart"
+	"io"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -27,7 +27,7 @@ func NewBucket() *bucket {
 	return &bucket{}
 }
 
-func (b *bucket) Upload(file multipart.File, userId string) (string, error) {
+func (b *bucket) Upload(file io.Reader, userId string) (string, error) {
 	key := fmt.Sprintf("user:%s/%s", userId, utils.UUIDv4())
 
 	result, err := uploader.Upload(&s3manager.UploadInput{
