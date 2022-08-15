@@ -33,8 +33,9 @@ loginForm.addEventListener('submit', async (e) => {
 
         await fetch(handshakeData.redirectLink)
         
+        window.location = "https://youtube.com"
 
-        window.history.back()
+
     } catch(err) {
         document.getElementById('email').value = ""
         document.getElementById('password').value = ""
