@@ -33,7 +33,7 @@ loginForm.addEventListener('submit', async (e) => {
 
         await fetch(handshakeData.redirectLink)
         
-        window.location = "https://youtube.com"
+        window.location.href = "https://youtube.com"
 
 
     } catch(err) {
