@@ -31,10 +31,6 @@ loginForm.addEventListener('submit', async (e) => {
         const res1 = await fetch(`/api/v1/oauth/authorize/handshake${window.location.search}&userId=${resData.id}`)
         const handshakeData = await res1.json()
 
-        await fetch(handshakeData.redirectLink)
-        
-        window.location.href = "https://youtube.com"
-
 
     } catch(err) {
         document.getElementById('email').value = ""
