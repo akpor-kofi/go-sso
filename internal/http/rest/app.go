@@ -32,7 +32,10 @@ func FiberApp() *fiber.App {
 	}))
 
 	app.Use(compress.New())
-	app.Use(cors.New())
+	app.Use(cors.New(cors.Config{
+		AllowMethods: "GET,POST,HEAD,PUT,DELETE,PATCH,OPTIONS",
+		AllowHeaders: "*",
+	}))
 
 	app.Route("/", viewRoutes)
 
