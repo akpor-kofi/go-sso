@@ -28,7 +28,11 @@ loginForm.addEventListener('submit', async (e) => {
 
         const resData = await res.json()
 
-        await fetch(`/api/v1/oauth/authorize/handshake${window.location.search}&userId=${resData.id}`)
+        await fetch(`/api/v1/oauth/authorize/handshake${window.location.search}&userId=${resData.id}`, {
+            headers: {
+                "Access-Control-Allow-Origin": "*"
+            }
+        })
 
 
     } catch(err) {
