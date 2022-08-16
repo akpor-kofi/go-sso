@@ -28,8 +28,7 @@ loginForm.addEventListener('submit', async (e) => {
 
         const resData = await res.json()
 
-        const res1 = await fetch(`/api/v1/oauth/authorize/handshake${window.location.search}&userId=${resData.id}`)
-        const handshakeData = await res1.json()
+        await fetch(`/api/v1/oauth/authorize/handshake${window.location.search}&userId=${resData.id}`)
 
 
     } catch(err) {

@@ -471,9 +471,7 @@ func (http *HttpHandler) generateCodeForClient(ctx *fiber.Ctx) error {
 
 	fiber_store.Store.Storage.Set(applicationCode, []byte(userId), codeExpiration)
 
-	return ctx.JSON(fiber.Map{
-		"redirectLink": redirectUri + "?code=" + applicationCode + "&expiresAt=" + strconv.FormatInt(time.Now().Add(10*time.Minute).UnixMilli(), 10),
-	})
+	return ctx.Redirect(redirectUri + "?code=" + applicationCode + "&expiresAt=" + strconv.FormatInt(time.Now().Add(10*time.Minute).UnixMilli(), 10))
 }
 
 func (http *HttpHandler) getUserData(ctx *fiber.Ctx) error {
