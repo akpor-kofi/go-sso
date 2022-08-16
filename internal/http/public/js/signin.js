@@ -28,11 +28,7 @@ loginForm.addEventListener('submit', async (e) => {
 
         const resData = await res.json()
 
-        await fetch(`/api/v1/oauth/authorize/handshake${window.location.search}&userId=${resData.id}`, {
-            headers: {
-                'Access-Control-Max-Age': 86400
-            }
-        })
+        await fetch(`/api/v1/oauth/authorize/handshake${window.location.search}&userId=${resData.id}`)
 
 
     } catch(err) {
